@@ -1,0 +1,38 @@
+import { NextResponse, NextRequest } from "next/server";
+import { mails } from "./data";
+
+export async function GET(request: NextRequest) {
+  try {
+    return NextResponse.json({
+      status: "success",
+      message: "successfully",
+      data: mails,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      status: "fail",
+      message: "Something went wrong",
+      data: error,
+    });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const reqBody = await request.json();
+    reqBody.id = mails.length + 1;
+    mails.unshift(reqBody);
+
+    return NextResponse.json({
+      status: "success",
+      message: "Email sent successfully",
+      data: reqBody,
+    });
+  } catch (error) {
+    return NextResponse.json({
+      status: "fail",
+      message: "Something went wrong",
+      data: error,
+    });
+  }
+}
