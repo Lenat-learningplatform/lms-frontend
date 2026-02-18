@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 const navLinks = [
   { label: "How It Works", href: "#how-it-works" },
@@ -14,6 +15,8 @@ const navLinks = [
 const HomeHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated" && !!session;
 
   const isRegisterPage = pathname === "/en/register";
   const isLoginPage = pathname === "/en/login";
@@ -90,18 +93,38 @@ const HomeHeader = () => {
               ))}
             </nav>
             <div className="hidden md:flex items-center gap-4">
-              <Link
-                href="/login"
-                className="text-[#222] font-medium hover:text-[#0071B9]"
-              >
-                Login to Platform
-              </Link>
-              <Link
-                href="/register"
-                className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium hover:bg-[#005a8c] transition-colors"
-              >
-                Start Learning Today
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/my-courses/courses"
+                    className="text-[#222] font-medium hover:text-[#0071B9]"
+                  >
+                    My Courses
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium hover:bg-[#005a8c] transition-colors"
+                  >
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-[#222] font-medium hover:text-[#0071B9]"
+                  >
+                    Login to Platform
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium hover:bg-[#005a8c] transition-colors"
+                  >
+                    Start Learning Today
+                  </Link>
+                </>
+              )}
             </div>
           </>
         )}
@@ -147,20 +170,44 @@ const HomeHeader = () => {
                 {link.label}
               </a>
             ))}
-            <Link
-              href="/login"
-              className="text-[#222] font-medium py-2 hover:text-[#0071B9]"
-              onClick={() => setMenuOpen(false)}
-            >
-              Login to Platform
-            </Link>
-            <Link
-              href="/register"
-              className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium mt-2 text-center hover:bg-[#005a8c] transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Start Learning Today
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/my-courses/courses"
+                  className="text-[#222] font-medium py-2 hover:text-[#0071B9]"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  My Courses
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    signOut({ callbackUrl: "/" });
+                  }}
+                  className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium mt-2 w-full hover:bg-[#005a8c] transition-colors"
+                >
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-[#222] font-medium py-2 hover:text-[#0071B9]"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Login to Platform
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-[#0071B9] text-white px-4 py-2 rounded-md font-medium mt-2 text-center hover:bg-[#005a8c] transition-colors"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Start Learning Today
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}

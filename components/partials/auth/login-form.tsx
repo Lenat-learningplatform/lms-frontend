@@ -156,9 +156,15 @@ const LoginForm = () => {
             {errors.password.message}
           </p>
         )}
+        <div className="mt-2 text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-[#0870C5] hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
       </div>
-
-      {/* Remember Me & Forgot Password */}
 
       {/* Submit Button */}
       <Button
