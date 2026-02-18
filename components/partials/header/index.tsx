@@ -53,10 +53,9 @@ const DashCodeHeader = () => {
               {/* Removed extra emphasis on the group label */}
               <div className="menu-items flex ">
                 {group.menus.map((menu, index) => (
-                  <>
+                  <React.Fragment key={menu.id + index}>
                     {hasPermission(roles, menu.permission) && (
                       <div
-                        key={menu.id + index}
                         className={`menu-item text-sm font-medium cursor-pointer mr-3  ${
                           menu.active
                             ? "text-brand-light font-extrabold "
@@ -74,7 +73,7 @@ const DashCodeHeader = () => {
                         </Link>
                       </div>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
             </div>

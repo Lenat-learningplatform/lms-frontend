@@ -3,9 +3,39 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 import { AuthOptions } from "next-auth";
 
+// JWT signing key: use env in production; in development use a fixed fallback so
+// sessions persist on refresh without requiring you to set NEXTAUTH_SECRET.
+const DEV_FALLBACK_SECRET =
+  "lms-dev-session-secret-min-32-chars-for-nextauth";
+const secret =
+  process.env.NEXTAUTH_SECRET ||
+  process.env.SECRET ||
+  (process.env.NODE_ENV === "production" ? undefined : DEV_FALLBACK_SECRET);
+
+if (!secret && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "In production set NEXTAUTH_SECRET in .env for session persistence"
+  );
+}
+
 export const authOptions: AuthOptions = {
-  secret: process.env.SECRET,
-  session: { strategy: "jwt" },
+  secret,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -23,8 +53,14 @@ export const authOptions: AuthOptions = {
         }
 
         try {
+          const baseUrl =
+            process.env.LARAVEL_API_URL ||
+            process.env.NEXT_PUBLIC_LARAVEL_API_URL;
+          if (!baseUrl) {
+            throw new Error("LARAVEL_API_URL or NEXT_PUBLIC_LARAVEL_API_URL is not set.");
+          }
           const response = await axios.post(
-            `${process.env.LARAVEL_API_URL}/login`,
+            `${baseUrl}/login`,
             {
               username: credentials.username,
               password: credentials.password,
@@ -63,8 +99,7 @@ export const authOptions: AuthOptions = {
       }
       return token;
     },
-    async session({ session, token, user }) {
-      console.log({ session, token, user, secret: process.env.SECRET });
+    async session({ session, token }) {
       session.accessToken = token.accessToken as string | undefined;
       session.user = {
         ...session.user,
@@ -78,5 +113,5 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: "/login",
   },
-  debug: true,
+  debug: false,
 };
